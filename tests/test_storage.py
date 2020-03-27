@@ -4,10 +4,10 @@ from pgbackup import storage
 
 @pytest.fixture()
 def infile():
-    f = tempfile.TemporaryFile('w+b')
+    f = tempfile.TemporaryFile('r+b')
     f.write(b'Testing')
     f.seek(0)
-
+    return f
 
 def test_storing_file_locally(infile):
     """
@@ -18,12 +18,10 @@ def test_storing_file_locally(infile):
     with open(outfile.name,'rb') as f:
         assert f.read() == b'Testing'
 
-def test_storing_file_os_aws_s3(mocker,infile):
+def test_storing_file_os_aws_s3(mocker, infile):
     """
     Writes content from one file-line to S3
     """
     client = mocker.Mock()
-
     storage.s3(client, infile, "bucket", "file-name")
-
-    client.ipload_fileobj.assert_called_with(infile, "bucket", "file-name")
+    client.upload_fileobj.assert_called_with(infile, "bucket", "file-name")
